@@ -1,0 +1,38 @@
+name: Build ArchISO
+
+on:
+  schedule:
+    - cron: '0 0 1 * *' 
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: archlinux:latest
+      options: --privileged
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm archiso git
+
+      - name: Prepare environment
+        run: |
+          chmod +x build.sh
+
+      - name: Build ISO
+        run: ./build.sh
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: archlinux-custom-iso
+          path: out/*.iso
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
